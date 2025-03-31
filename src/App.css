@@ -1,0 +1,21 @@
+.selected-row {
+  background-color: rgba(0, 123, 255, 0.1) !important;
+}
+
+tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.05) !important;
+}
+
+.text-warning {
+  color: #ffc107 !important;
+}
+
+.rc-slider-handle:hover {
+  border-color: #0056b3 !important;
+  box-shadow: 0 0 0 5px rgba(0, 123, 255, 0.2) !important;
+}
+
+.rc-slider-handle:active {
+  border-color: #0056b3 !important;
+  box-shadow: 0 0 0 5px rgba(0, 123, 255, 0.2) !important;
+}
