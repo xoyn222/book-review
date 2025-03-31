@@ -38,7 +38,7 @@ function App() {
 
     const fetchBooks = async (pageNum = page, isReset = false) => {
         try {
-            const res = await axios.get(`http://localhost:5000/books`, {
+            const res = await axios.get(`book-review-back-production.up.railway.app/books`, {
                 params: {
                     language: settings.language,
                     seed: settings.seed,
