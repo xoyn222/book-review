@@ -47,6 +47,7 @@ function App() {
                     page: pageNum,
                     perPage: pageNum === 1 ? 20 : 10
                 },
+
             });
 
             if (res.data.length === 0) {
@@ -57,7 +58,8 @@ function App() {
             if (isReset) {
                 setBooks(res.data);
             } else {
-                setBooks((prev) => [...prev, ...res.data]);
+                setBooks((prev) => [...prev, ...res.data])
+                console.log("Books data:", books);
             }
 
             setPage(pageNum + 1);
