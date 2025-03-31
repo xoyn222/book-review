@@ -306,7 +306,7 @@ function App() {
                             <div className="px-2">
                                 <Slider
                                     min={0}
-                                    max={10}
+                                    max={5}
                                     step={0.1}
                                     value={settings.likes}
                                     onChange={(val) => handleSettingChange('likes', val)}
