@@ -38,7 +38,7 @@ function App() {
 
     const fetchBooks = async (pageNum = page, isReset = false) => {
         try {
-            const res = await axios.get(`book-review-back-production.up.railway.app/books`, {
+            const res = await axios.get(`https://book-review-back-production.up.railway.app/books`, {
                 params: {
                     language: settings.language,
                     seed: settings.seed,
@@ -47,19 +47,19 @@ function App() {
                     page: pageNum,
                     perPage: pageNum === 1 ? 20 : 10
                 },
-
             });
 
-            if (res.data.length === 0) {
+            const responseData = Array.isArray(res.data) ? res.data : [];
+
+            if (responseData.length === 0) {
                 setHasMore(false);
                 return;
             }
 
             if (isReset) {
-                setBooks(res.data);
+                setBooks(responseData);
             } else {
-                setBooks((prev) => [...prev, ...res.data])
-                console.log("Books data:", books);
+                setBooks((prev) => [...prev, ...responseData]);
             }
 
             setPage(pageNum + 1);
@@ -94,6 +94,8 @@ function App() {
     };
 
     const getCSVData = () => {
+        if (!Array.isArray(books)) return [];
+
         return books.map(book => ({
             Index: book.index,
             ISBN: book.isbn,
@@ -134,121 +136,143 @@ function App() {
         );
     };
 
-    const renderTableView = () => (
-        <div className="table-container">
-            <Table striped bordered hover responsive>
-                <thead>
-                <tr>
-                    <th>#</th>
-                    <th>ISBN</th>
-                    <th>Title</th>
-                    <th>Author(s)</th>
-                    <th>Publisher</th>
-                </tr>
-                </thead>
-                <tbody>
-                {books.map((book) => (
-                    <React.Fragment key={book.index}>
-                        <tr
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => setExpandedBook(expandedBook === book ? null : book)}
-                            className={expandedBook === book ? "selected-row" : ""}
-                        >
-                            <td>{book.index}</td>
-                            <td>{book.isbn}</td>
-                            <td>{book.title}</td>
-                            <td>{book.author}</td>
-                            <td>{book.publisher}</td>
-                        </tr>
-                        {expandedBook === book && (
-                            <tr>
-                                <td colSpan="5" className="p-0">
-                                    <Card className="border-0 shadow-sm m-2">
-                                        <Card.Body>
-                                            <Row>
-                                                <Col md={3}>
-                                                    <div className="book-cover">
-                                                        <img
-                                                            src={book.coverUrl}
-                                                            alt="Book cover"
-                                                            className="img-fluid shadow"
-                                                        />
-                                                        <div className="book-overlay">
-                                                            <h5 className="book-title">{book.title}</h5>
-                                                            <p className="book-author">{book.author}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="mt-3 text-center">
-                                                        <div className="d-flex justify-content-center">
-                                                            {getStarRating(book.rating)}
-                                                        </div>
-                                                        <div className="likes-count mt-2">
-                                                            <i className="bi bi-heart-fill text-danger"></i> {book.likes} likes
-                                                        </div>
-                                                    </div>
-                                                </Col>
-                                                <Col md={9}>
-                                                    <div className="book-details">
-                                                        <h3>{book.title}</h3>
-                                                        <p className="text-muted">by {book.author}</p>
-                                                        <p className="small text-secondary">{book.publisher} • ISBN: {book.isbn}</p>
-                                                        <p>{book.description}</p>
+    const renderTableView = () => {
+        if (!Array.isArray(books) || books.length === 0) {
+            return <p>No books available</p>;
+        }
 
-                                                        <div className="book-metadata">
-                                                            <span className="badge bg-info me-2">Language: {settings.language.toUpperCase()}</span>
-                                                            <span className="badge bg-secondary me-2">Pages: {book.pages}</span>
-                                                            <span className="badge bg-primary">Published: {book.year}</span>
-                                                        </div>
-                                                    </div>
-
-                                                    {renderBookReviews(book)}
-                                                </Col>
-                                            </Row>
-                                        </Card.Body>
-                                    </Card>
-                                </td>
+        return (
+            <div className="table-container">
+                <Table striped bordered hover responsive>
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>ISBN</th>
+                        <th>Title</th>
+                        <th>Author(s)</th>
+                        <th>Publisher</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {books.map((book) => (
+                        <React.Fragment key={book.index}>
+                            <tr
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => setExpandedBook(expandedBook === book ? null : book)}
+                                className={expandedBook === book ? "selected-row" : ""}
+                            >
+                                <td>{book.index}</td>
+                                <td>{book.isbn}</td>
+                                <td>{book.title}</td>
+                                <td>{book.author}</td>
+                                <td>{book.publisher}</td>
                             </tr>
-                        )}
-                    </React.Fragment>
-                ))}
-                </tbody>
-            </Table>
-        </div>
-    );
+                            {expandedBook === book && (
+                                <tr>
+                                    <td colSpan="5" className="p-0">
+                                        <Card className="border-0 shadow-sm m-2">
+                                            <Card.Body>
+                                                <Row>
+                                                    <Col md={3}>
+                                                        <div className="book-cover">
+                                                            <img
+                                                                src={book.coverUrl}
+                                                                alt="Book cover"
+                                                                className="img-fluid shadow"
+                                                                onError={(e) => {
+                                                                    e.target.src = "https://placehold.co/300x450/e9ecef/495057?text=Cover+Not+Available";
+                                                                }}
+                                                            />
+                                                            <div className="book-overlay">
+                                                                <h5 className="book-title">{book.title}</h5>
+                                                                <p className="book-author">{book.author}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="mt-3 text-center">
+                                                            <div className="d-flex justify-content-center">
+                                                                {getStarRating(book.rating)}
+                                                            </div>
+                                                            <div className="likes-count mt-2">
+                                                                <i className="bi bi-heart-fill text-danger"></i> {book.likes} likes
+                                                            </div>
+                                                        </div>
+                                                    </Col>
+                                                    <Col md={9}>
+                                                        <div className="book-details">
+                                                            <h3>{book.title}</h3>
+                                                            <p className="text-muted">by {book.author}</p>
+                                                            <p className="small text-secondary">{book.publisher} • ISBN: {book.isbn}</p>
+                                                            <p>{book.description}</p>
 
-    const renderGalleryView = () => (
-        <Row className="gallery-view">
-            {books.map((book) => (
-                <Col key={book.index} xs={12} sm={6} md={4} lg={3} className="mb-4">
-                    <Card
-                        className={`h-100 book-card ${expandedBook === book ? 'selected-card' : ''}`}
-                        onClick={() => setExpandedBook(expandedBook === book ? null : book)}
-                    >
-                        <div className="book-cover-container">
-                            <Card.Img variant="top" src={book.coverUrl} className="book-cover-img" />
-                            <div className="book-overlay">
-                                <h5 className="book-title">{book.title}</h5>
-                                <p className="book-author">{book.author}</p>
+                                                            <div className="book-metadata">
+                                                                <span className="badge bg-info me-2">Language: {settings.language.toUpperCase()}</span>
+                                                                <span className="badge bg-secondary me-2">Pages: {book.pages}</span>
+                                                                <span className="badge bg-primary">Published: {book.year}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        {renderBookReviews(book)}
+                                                    </Col>
+                                                </Row>
+                                            </Card.Body>
+                                        </Card>
+                                    </td>
+                                </tr>
+                            )}
+                        </React.Fragment>
+                    ))}
+                    </tbody>
+                </Table>
+            </div>
+        );
+    };
+
+    const renderGalleryView = () => {
+        if (!Array.isArray(books) || books.length === 0) {
+            return <p>No books available</p>;
+        }
+
+        return (
+            <Row className="gallery-view">
+                {books.map((book) => (
+                    <Col key={book.index} xs={12} sm={6} md={4} lg={3} className="mb-4">
+                        <Card
+                            className={`h-100 book-card ${expandedBook === book ? 'selected-card' : ''}`}
+                            onClick={() => setExpandedBook(expandedBook === book ? null : book)}
+                        >
+                            <div className="book-cover-container">
+                                <Card.Img
+                                    variant="top"
+                                    src={book.coverUrl}
+                                    className="book-cover-img"
+                                    onError={(e) => {
+                                        e.target.src = "https://placehold.co/300x450/e9ecef/495057?text=Cover+Not+Available";
+                                    }}
+                                />
+                                <div className="book-overlay">
+                                    <h5 className="book-title">{book.title}</h5>
+                                    <p className="book-author">{book.author}</p>
+                                </div>
                             </div>
-                        </div>
-                        <Card.Body>
-                            <Card.Title>{book.title}</Card.Title>
-                            <Card.Subtitle className="mb-2 text-muted">{book.author}</Card.Subtitle>
-                            <div className="d-flex justify-content-between align-items-center">
-                                {getStarRating(book.rating)}
-                                <span className="likes-count">
-                  <i className="bi bi-heart-fill text-danger"></i> {book.likes}
-                </span>
-                            </div>
-                        </Card.Body>
-                        <Card.Footer className="text-muted small">
-                            {book.publisher} • {book.year}
-                        </Card.Footer>
-                    </Card>
-                </Col>
-            ))}
-        </Row>
-    );
+                            <Card.Body>
+                                <Card.Title>{book.title}</Card.Title>
+                                <Card.Subtitle className="mb-2 text-muted">{book.author}</Card.Subtitle>
+                                <div className="d-flex justify-content-between align-items-center">
+                                    {getStarRating(book.rating)}
+                                    <span className="likes-count">
+                                        <i className="bi bi-heart-fill text-danger"></i> {book.likes}
+                                    </span>
+                                </div>
+                            </Card.Body>
+                            <Card.Footer className="text-muted small">
+                                {book.publisher} • {book.year}
+                            </Card.Footer>
+                        </Card>
+                    </Col>
+                ))}
+            </Row>
+        );
+    };
 
     return (
         <Container fluid className="py-4">
@@ -348,6 +372,7 @@ function App() {
                 <Button
                     variant="success"
                     onClick={handleExportCSV}
+                    disabled={!Array.isArray(books) || books.length === 0}
                 >
                     <i className="bi bi-file-earmark-excel me-1"></i> Export to CSV
                 </Button>
@@ -362,13 +387,13 @@ function App() {
             </div>
 
             <InfiniteScroll
-                dataLength={books.length}
+                dataLength={books?.length || 0}
                 next={() => fetchBooks()}
                 hasMore={hasMore}
                 loader={<div className="text-center my-3"><div className="spinner-border text-primary" role="status"></div></div>}
                 endMessage={<p className="text-center">You've seen all books</p>}
             >
-                {viewMode === 'table' ? renderTableView() : renderGalleryView()}
+                {Array.isArray(books) && (viewMode === 'table' ? renderTableView() : renderGalleryView())}
             </InfiniteScroll>
         </Container>
     );
